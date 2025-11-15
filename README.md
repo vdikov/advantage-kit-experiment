@@ -18,7 +18,7 @@ NOTES:
 * We prefer the `Block CAD` models over more detailed models because these models are much smaller in size (mere KBs) and load much faster in Advantage Scope.
 * Other CAD models would work eventually too, but they can go up in the 100s of MB and take a lot more to load and render.
 
-Finally, follow the `model.glb`, `model_0.glb`, `model_1.glb`, ... naming convention as per video tutorial, and work on the `config.json` to make all of the subcomponents load in AdvantageScope. 
+Finally, follow the `model.glb`, `model_0.glb`, `model_1.glb`, ... naming convention as per video tutorial, and work on the `config.json` to make all of the subcomponents load in AdvantageScope.
 
 NOTE: If the files are not exported in the proper format, named incorrectly, or `config.json` is invalid, Advantage Scope will print a message `Some asset files failed to load.`. Start simple (e.g. just with `model.glb`) and keep adding components one at a time.
 
