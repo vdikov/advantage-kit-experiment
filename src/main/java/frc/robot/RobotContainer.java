@@ -20,9 +20,10 @@ import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
+import frc.robot.controllers.GenericController;
+import frc.robot.controllers.PS4Controller;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
@@ -43,7 +44,9 @@ public class RobotContainer {
   private final Drive drive;
 
   // Controller
-  private final CommandXboxController controller = new CommandXboxController(0);
+  //   private final CommandXboxController controller = new CommandXboxController(0);
+  private final GenericController controller = new PS4Controller(0);
+  //   private final GenericController controller = new XBoxController(0);
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -125,7 +128,7 @@ public class RobotContainer {
 
     // Lock to 0° when A button is held
     controller
-        .a()
+        .getAOrCrossTrigger()
         .whileTrue(
             DriveCommands.joystickDriveAtAngle(
                 drive,
@@ -134,11 +137,11 @@ public class RobotContainer {
                 () -> new Rotation2d()));
 
     // Switch to X pattern when X button is pressed
-    controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
+    controller.getXOrSquareTrigger().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
     // Reset gyro to 0° when B button is pressed
     controller
-        .b()
+        .getBOrCircleTrigger()
         .onTrue(
             Commands.runOnce(
                     () ->
