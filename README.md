@@ -24,4 +24,8 @@ NOTE: If the files are not exported in the proper format, named incorrectly, or 
 
 <img src="docs/images/AdvantageScope - error loading custom CAD.png" width=500>
 
+To troubleshoot asset loading failures, open the `Developer Tools` to investigate error messages in the Advantage Scope `Console`.
+
+<img src="docs/images/AdvantageScope - open console.png" width=500>
+
 NOTE: To point AdvantageScope to the `.glb` files we have in the robot repository, go to `Help -> Use Custom Asset Folder` and point it to the `advantage_scope_robots` subfolder in the repository.
