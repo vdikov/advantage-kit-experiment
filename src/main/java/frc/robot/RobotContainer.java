@@ -28,9 +28,13 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
+import frc.robot.subsystems.drive.GyroIOSim;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
+import org.ironmaple.simulation.SimulatedArena;
+import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
+import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -43,8 +47,9 @@ public class RobotContainer {
   // Subsystems
   private final Drive drive;
 
+  private SwerveDriveSimulation driveSimulation = null;
+
   // Controller
-  //   private final CommandXboxController controller = new CommandXboxController(0);
   private final GenericController controller = new PS4Controller(0);
   //   private final GenericController controller = new XBoxController(0);
 
@@ -62,29 +67,40 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.FrontLeft),
                 new ModuleIOTalonFX(TunerConstants.FrontRight),
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
-                new ModuleIOTalonFX(TunerConstants.BackRight));
+                new ModuleIOTalonFX(TunerConstants.BackRight),
+                (robotPose) -> {});
         break;
 
       case SIM:
         // Sim robot, instantiate physics sim IO implementations
+
+        driveSimulation =
+            new SwerveDriveSimulation(Drive.mapleSimConfig, new Pose2d(12, 2, new Rotation2d()));
+        SimulatedArena.getInstance().addDriveTrainSimulation(driveSimulation);
+
         drive =
             new Drive(
-                new GyroIO() {},
-                new ModuleIOSim(TunerConstants.FrontLeft),
-                new ModuleIOSim(TunerConstants.FrontRight),
-                new ModuleIOSim(TunerConstants.BackLeft),
-                new ModuleIOSim(TunerConstants.BackRight));
+                new GyroIOSim(driveSimulation.getGyroSimulation()),
+                new ModuleIOSim(driveSimulation.getModules()[0], 0),
+                new ModuleIOSim(driveSimulation.getModules()[1], 1),
+                new ModuleIOSim(driveSimulation.getModules()[2], 2),
+                new ModuleIOSim(driveSimulation.getModules()[3], 3),
+                driveSimulation::setSimulationWorldPose);
         break;
 
       default:
         // Replayed robot, disable IO implementations
+        // NOTE: The Pearadox codebase leaves this field unset ?!
+        // See
+        // https://github.com/Pearadox/2025RobotCode/blob/main/src/main/java/frc/robot/RobotContainer.java#L168.
         drive =
             new Drive(
                 new GyroIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {},
-                new ModuleIO() {});
+                new ModuleIO() {},
+                (robotPose) -> {});
         break;
     }
 
@@ -119,12 +135,13 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
     // Default command, normal field-relative drive
-    drive.setDefaultCommand(
-        DriveCommands.joystickDrive(
-            drive,
-            () -> -controller.getLeftY(),
-            () -> -controller.getLeftX(),
-            () -> -controller.getRightX()));
+    // drive.setDefaultCommand(
+    //     DriveCommands.joystickDrive(
+    //         drive,
+    //         () -> -controller.getLeftY(),
+    //         () -> -controller.getLeftX(),
+    //         () -> -controller.getRightX()));
+    drive.setDefaultCommand(DriveCommands.joystickDrive(drive, () -> 0.0, () -> 0.3, () -> 0.0));
 
     // Lock to 0° when A button is held
     controller
@@ -158,5 +175,39 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     return autoChooser.get();
+  }
+
+  /**
+   * Resets the simulation.
+   *
+   * <p>Borrowed from
+   * https://github.com/Pearadox/2025RobotCode/blob/main/src/main/java/frc/robot/RobotContainer.java#L394.
+   */
+  public void resetSimulation() {
+    if (Constants.currentMode != Constants.Mode.SIM) return;
+
+    drive.setPose(new Pose2d(12, 2, new Rotation2d()));
+    SimulatedArena.getInstance().resetFieldForAuto();
+    // AlgaeHandler.getInstance().reset();
+  }
+
+  /**
+   * Updates Simulated Arena; to be called from Robot.simulationPeriodic()
+   *
+   * <p>Borrowed from
+   * https://github.com/Pearadox/2025RobotCode/blob/main/src/main/java/frc/robot/RobotContainer.java#L402
+   */
+  public void displaySimFieldToAdvantageScope() {
+    if (Constants.currentMode != Constants.Mode.SIM) return;
+
+    SimulatedArena.getInstance().simulationPeriodic();
+    // Logger.recordOutput("FieldSimulation/Pose", new
+    // Pose3d(driveSimulation.getSimulatedDriveTrainPose()));
+    Logger.recordOutput(
+        "FieldSimulation/Coral", SimulatedArena.getInstance().getGamePiecesArrayByType("Coral"));
+    Logger.recordOutput(
+        "FieldSimulation/Algae", SimulatedArena.getInstance().getGamePiecesArrayByType("Algae"));
+    // Logger.recordOutput(
+    //         "FieldSimulation/Staged Algae", AlgaeHandler.getInstance().periodic());
   }
 }
