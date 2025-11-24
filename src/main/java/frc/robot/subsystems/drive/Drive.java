@@ -90,6 +90,10 @@ public class Drive extends SubsystemBase {
               1),
           getModuleTranslations());
 
+  // A mapleSimConfig that was carefully crafted to make the CTRE motor simulations play nicely with
+  // maplesim's simulation system. The values were copied from a forum thread that also provides
+  // some additional context for the problem
+  // https://www.chiefdelphi.com/t/maplesim-strange-behavior-need-help/502245/6
   public static final DriveTrainSimulationConfig mapleSimConfig =
       DriveTrainSimulationConfig.Default()
           .withRobotMass(Kilograms.of(ROBOT_MASS_KG))
@@ -99,13 +103,13 @@ public class Drive extends SubsystemBase {
           .withSwerveModule(
               new SwerveModuleSimulationConfig(
                   DCMotor.getKrakenX60(1),
-                  DCMotor.getFalcon500(1),
+                  DCMotor.getKrakenX60(1),
                   TunerConstants.FrontLeft.DriveMotorGearRatio,
                   TunerConstants.FrontLeft.SteerMotorGearRatio,
-                  Volts.of(TunerConstants.FrontLeft.DriveFrictionVoltage),
-                  Volts.of(TunerConstants.FrontLeft.SteerFrictionVoltage),
-                  Inches.of(2),
-                  KilogramSquareMeters.of(TunerConstants.FrontLeft.SteerInertia),
+                  Volts.of(0.3),
+                  Volts.of(0.5),
+                  Meters.of(TunerConstants.FrontLeft.WheelRadius),
+                  KilogramSquareMeters.of(0.05),
                   WHEEL_COF));
 
   static final Lock odometryLock = new ReentrantLock();
